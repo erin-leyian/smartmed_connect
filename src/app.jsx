@@ -1,8 +1,10 @@
+import { Routes, Route} from 'react-router-dom';
+import Home from './pages/Home'
+
 export default function App() {
   return (
-    <div>
-      <h1>SmartMed Connect</h1>
-      <p>If you can see this, React and Vite are working.</p>
-    </div>
+    <Routes>
+      <Route path="/" element={<Home />} />
+    </Routes>
   )
 }
