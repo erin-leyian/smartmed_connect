@@ -1,12 +1,32 @@
 import { useState } from 'react'
+import { useNavigate, Link } from 'react-router-dom'
+import { supabase } from '../lib/supabaseClient'
 
 export default function Login() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [error, setError] = useState(null)
+  const [loading, setLoading] = useState(false)
+  const navigate = useNavigate()
 
-  function handleLogin(e) {
+  async function handleLogin(e) {
     e.preventDefault()
-    console.log('Trying to log in with:', email, password)
+    setError(null)
+    setLoading(true)
+
+    const { error: signInError } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    })
+
+    setLoading(false)
+
+    if (signInError) {
+      setError(signInError.message)
+      return
+    }
+
+    navigate('/')
   }
 
   return (
@@ -19,6 +39,7 @@ export default function Login() {
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
+            required
           />
         </label>
         <label>
@@ -27,10 +48,15 @@ export default function Login() {
             type="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
+            required
           />
         </label>
-        <button type="submit">Log in</button>
+        {error && <p className="form-error">{error}</p>}
+        <button type="submit" disabled={loading}>
+          {loading ? 'Logging in...' : 'Log in'}
+        </button>
       </form>
+      <p>Don't have an account? <Link to="/register">Register</Link></p>
     </div>
   )
 }
