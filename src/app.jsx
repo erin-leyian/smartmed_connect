@@ -5,6 +5,8 @@ import Login from './pages/Login'
 import Register from './pages/Register'
 import SearchResults from './pages/SearchResults'
 import PharmacyProfile from './pages/PharmacyProfile'
+import ProtectedRoute from './components/ProtectedRoute'
+import PharmacyAdminDashboard from './pages/PharmacyAdminDashboard'
 
 
 export default function App() {
@@ -17,6 +19,14 @@ export default function App() {
         <Route path="/register" element={<Register />} />
         <Route path="/search" element={<SearchResults />} />
         <Route path="/pharmacy/:id" element={<PharmacyProfile />} />
+        <Route
+          path="/pharmacy-admin"
+          element={
+            <ProtectedRoute allowedRoles={['pharmacy_admin']}>
+              <PharmacyAdminDashboard />
+            </ProtectedRoute>
+          }
+        />
       </Routes>
     </>
   )
