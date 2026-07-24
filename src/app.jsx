@@ -7,7 +7,7 @@ import SearchResults from './pages/SearchResults'
 import PharmacyProfile from './pages/PharmacyProfile'
 import ProtectedRoute from './components/ProtectedRoute'
 import PharmacyAdminDashboard from './pages/PharmacyAdminDashboard'
-
+import SystemAdminPanel from './pages/SystemAdminPanel'
 
 export default function App() {
   return (
@@ -24,6 +24,14 @@ export default function App() {
           element={
             <ProtectedRoute allowedRoles={['pharmacy_admin']}>
               <PharmacyAdminDashboard />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/system-admin"
+          element={
+            <ProtectedRoute allowedRoles={['system_admin']}>
+              <SystemAdminPanel />
             </ProtectedRoute>
           }
         />
