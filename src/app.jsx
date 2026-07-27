@@ -11,8 +11,9 @@ import SystemAdminPanel from './pages/SystemAdminPanel'
 
 export default function App() {
   return (
-    <>
+      <div className="app-shell">
       <Navbar />
+      <main className="app-main">
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/login" element={<Login />} />
@@ -36,6 +37,7 @@ export default function App() {
           }
         />
       </Routes>
-    </>
+    </main>
+    </div>
   )
 }

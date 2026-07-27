@@ -1,9 +1,11 @@
+import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../lib/AuthContext'
 
 export default function Navbar() {
-  const { user, signOut } = useAuth()
+  const { user, profile, signOut } = useAuth()
   const navigate = useNavigate()
+  const [isOpen, setIsOpen] = useState(true)
 
   async function handleSignOut() {
     await signOut()
@@ -11,21 +13,27 @@ export default function Navbar() {
   }
 
   return (
-    <nav className="navbar">
-      <Link to="/" className="navbar-brand">SmartMed Connect</Link>
-      <div className="navbar-links">
-        {!user && (
-          <>
-            <Link to="/login">Login</Link>
-            <Link to="/register">Register</Link>
-          </>
-        )}
-        {user && (
-          <button className="link-button" onClick={handleSignOut}>
-            Log out
-          </button>
-        )}
-      </div>
-    </nav>
+    <>
+      <button className="sidebar-toggle" onClick={() => setIsOpen(!isOpen)}>
+        {isOpen ? '‹' : '›'}
+      </button>
+      <nav className={`sidebar ${isOpen ? 'sidebar-open' : 'sidebar-closed'}`}>
+        <Link to="/" className="sidebar-brand">SmartMed Connect</Link>
+        <div className="sidebar-links">
+          <Link to="/">Home</Link>
+          {!user && (
+            <>
+              <Link to="/login">Login</Link>
+              <Link to="/register">Register</Link>
+            </>
+          )}
+          {user && profile?.role === 'pharmacy_admin' && <Link to="/pharmacy-admin">My pharmacy</Link>}
+          {user && profile?.role === 'system_admin' && <Link to="/system-admin">Admin panel</Link>}
+          {user && (
+            <button className="link-button sidebar-logout" onClick={handleSignOut}>Log out</button>
+          )}
+        </div>
+      </nav>
+    </>
   )
 }
