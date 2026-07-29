@@ -14,8 +14,7 @@ export default function Navbar() {
 
   return (
     <>
-      <button className="sidebar-toggle" onClick={() => setIsOpen(!isOpen)}>
-        {isOpen ? '‹' : '›'}
+      <button className={`sidebar-toggle ${isOpen ? 'toggle-open' : 'toggle-closed'}`} onClick={() => setIsOpen(!isOpen)}>        {isOpen ? '‹' : '›'}
       </button>
       <nav className={`sidebar ${isOpen ? 'sidebar-open' : 'sidebar-closed'}`}>
         <Link to="/" className="sidebar-brand">SmartMed Connect</Link>
