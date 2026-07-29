@@ -419,3 +419,16 @@ button:hover {
     flex-direction: column;
   }
 }
+
+.welcome-form-wrap {
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 10px;
+  padding: 2rem;
+  max-width: 380px;
+  width: 100%;
+}
+
+.welcome-back {
+  margin-top: 1rem;
+  display: block;
+}
