@@ -352,3 +352,70 @@ button:hover {
   border-radius: 12px;
   padding: 2rem;
 }
+
+.welcome-shell {
+  display: flex;
+  min-height: 100vh;
+}
+
+.welcome-hero {
+  flex: 1;
+  background: linear-gradient(135deg, #0f4c75, #2196d8);
+  color: white;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  padding: 3rem;
+}
+
+.welcome-hero h1 {
+  font-size: 2.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.welcome-actions {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 3rem;
+  text-align: center;
+}
+
+.welcome-buttons {
+  display: flex;
+  gap: 1rem;
+  margin: 1.5rem 0;
+}
+
+.welcome-btn {
+  padding: 0.7rem 1.5rem;
+  border-radius: 4px;
+  text-decoration: none;
+  font-size: 1rem;
+}
+
+.welcome-btn-primary {
+  background: #2196d8;
+  color: white;
+}
+
+.welcome-btn-secondary {
+  background: white;
+  color: #0f4c75;
+  border: 1px solid #2196d8;
+}
+
+.welcome-guest {
+  font-size: 0.9rem;
+  color: #5c6b7a;
+}
+
+@media (max-width: 700px) {
+  .welcome-shell {
+    flex-direction: column;
+  }
+}

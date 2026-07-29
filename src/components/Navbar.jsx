@@ -17,9 +17,9 @@ export default function Navbar() {
       <button className={`sidebar-toggle ${isOpen ? 'toggle-open' : 'toggle-closed'}`} onClick={() => setIsOpen(!isOpen)}>        {isOpen ? '‹' : '›'}
       </button>
       <nav className={`sidebar ${isOpen ? 'sidebar-open' : 'sidebar-closed'}`}>
-        <Link to="/" className="sidebar-brand">SmartMed Connect</Link>
+        <Link to="/browse" className="sidebar-brand">SmartMed Connect</Link>
         <div className="sidebar-links">
-          <Link to="/">Home</Link>
+          <Link to="/browse">Home</Link>
           {!user && (
             <>
               <Link to="/login">Login</Link>
