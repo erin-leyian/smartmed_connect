@@ -1,4 +1,4 @@
-import { Routes, Route, useLocation } from 'react-router-dom';
+import { Routes, Route, useLocation, Navigate } from 'react-router-dom';
 import Navbar from './components/Navbar'
 import RootRedirect from './pages/RootRedirect'
 import Home from './pages/Home'
@@ -24,7 +24,7 @@ export default function App() {
         <Route path="/" element={<RootRedirect />} />
         <Route path="/browse" element={<Home />} />
         <Route path="/login" element={<Login />} />
-        <Route path="/register" element={<Register />} />
+        <Route path="/register" element={<Navigate to="/" replace />} />
         <Route path="/search" element={<SearchResults />} />
         <Route path="/pharmacy/:id" element={<PharmacyProfile />} />
         <Route
