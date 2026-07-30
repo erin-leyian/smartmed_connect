@@ -34,7 +34,6 @@ export default function Home() {
       .select(`price, medicines!inner ( name, category ), pharmacies!inner ( verification_status )`)
       .eq('pharmacies.verification_status', 'verified')
       .gt('quantity', 0)
-      .limit(100)
 
     if (!error && data) {
       const grouped = {}
