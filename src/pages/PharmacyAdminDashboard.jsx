@@ -32,6 +32,12 @@ export default function PharmacyAdminDashboard() {
   const [demoCode, setDemoCode] = useState(null)
   const [emailError, setEmailError] = useState(null)
 
+  // Editing existing pharmacy details (FR8)
+  const [editingDetails, setEditingDetails] = useState(false)
+  const [editForm, setEditForm] = useState(null)
+  const [editError, setEditError] = useState(null)
+  const [editSaving, setEditSaving] = useState(false)
+
   useEffect(() => {
     fetchPharmacy()
   }, [])
@@ -204,6 +210,81 @@ export default function PharmacyAdminDashboard() {
     fetchInventory(pharmacy.id)
   }
 
+  // --- Edit pharmacy details (FR8) ---
+
+  function openEditDetails() {
+    setEditForm({
+      name: pharmacy.name || '',
+      address: pharmacy.address || '',
+      phone: pharmacy.phone || '',
+      license_number: pharmacy.license_number || '',
+      contact_email: pharmacy.contact_email || '',
+      latitude: pharmacy.latitude != null ? String(pharmacy.latitude) : '',
+      longitude: pharmacy.longitude != null ? String(pharmacy.longitude) : '',
+    })
+    setEditError(null)
+    setEditingDetails(true)
+  }
+
+  function handleUseLocationForEdit() {
+    if (!navigator.geolocation) {
+      alert('Location is not supported on this device.')
+      return
+    }
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        setEditForm((f) => ({
+          ...f,
+          latitude: position.coords.latitude.toFixed(6),
+          longitude: position.coords.longitude.toFixed(6),
+        }))
+      },
+      () => alert('Could not get your location.')
+    )
+  }
+
+  async function handleSaveDetails(e) {
+    e.preventDefault()
+    setEditError(null)
+    setEditSaving(true)
+
+    const emailChanged = editForm.contact_email !== pharmacy.contact_email
+
+    const payload = {
+      name: editForm.name,
+      address: editForm.address,
+      phone: editForm.phone,
+      license_number: editForm.license_number,
+      contact_email: editForm.contact_email,
+      latitude: editForm.latitude ? parseFloat(editForm.latitude) : null,
+      longitude: editForm.longitude ? parseFloat(editForm.longitude) : null,
+    }
+
+    if (emailChanged) {
+      payload.contact_email_verified = false
+      payload.contact_email_code = null
+      payload.contact_email_code_expires_at = null
+    }
+
+    const { data, error } = await supabase
+      .from('pharmacies')
+      .update(payload)
+      .eq('id', pharmacy.id)
+      .select()
+      .single()
+
+    setEditSaving(false)
+
+    if (error) {
+      setEditError(error.message)
+      return
+    }
+
+    setPharmacy(data)
+    setDemoCode(null)
+    setEditingDetails(false)
+  }
+
   if (loading) return <p className="page-loading">Loading...</p>
 
   // Fallback: only reached if this pharmacy_admin account has no pharmacy row
@@ -256,6 +337,76 @@ export default function PharmacyAdminDashboard() {
     )
   }
 
+  const detailsSection = editingDetails ? (
+    <div className="email-verify-box">
+      <h2>Edit pharmacy details</h2>
+      <form onSubmit={handleSaveDetails} className="auth-form">
+        <label>
+          Pharmacy name
+          <input value={editForm.name} onChange={(e) => setEditForm({ ...editForm, name: e.target.value })} required />
+        </label>
+        <label>
+          Address
+          <input value={editForm.address} onChange={(e) => setEditForm({ ...editForm, address: e.target.value })} required />
+        </label>
+        <label>
+          Phone
+          <input value={editForm.phone} onChange={(e) => setEditForm({ ...editForm, phone: e.target.value })} />
+        </label>
+        <label>
+          Contact email
+          <input
+            type="email"
+            value={editForm.contact_email}
+            onChange={(e) => setEditForm({ ...editForm, contact_email: e.target.value })}
+            required
+          />
+        </label>
+        <label>
+          License number
+          <input
+            value={editForm.license_number}
+            onChange={(e) => setEditForm({ ...editForm, license_number: e.target.value })}
+            required
+          />
+        </label>
+
+        <button type="button" onClick={handleUseLocationForEdit} className="link-button">
+          📍 Update coordinates to my current location
+        </button>
+        {editForm.latitude && editForm.longitude && (
+          <p className="form-hint">Location: {editForm.latitude}, {editForm.longitude}</p>
+        )}
+
+        {editForm.contact_email !== pharmacy.contact_email && (
+          <p className="form-hint">
+            Changing your contact email will require re-verifying it before you can manage inventory again.
+          </p>
+        )}
+
+        {editError && <p className="form-error">{editError}</p>}
+
+        <div style={{ display: 'flex', gap: '0.75rem' }}>
+          <button type="submit" disabled={editSaving}>
+            {editSaving ? 'Saving...' : 'Save changes'}
+          </button>
+          <button type="button" className="link-button" onClick={() => setEditingDetails(false)}>
+            Cancel
+          </button>
+        </div>
+      </form>
+    </div>
+  ) : (
+    <div className="pharmacy-info-card">
+      <p><span className="info-icon">📍</span> {pharmacy.address}</p>
+      <p><span className="info-icon">📞</span> {pharmacy.phone || 'No phone on file'}</p>
+      <p><span className="info-icon">🪪</span> License: {pharmacy.license_number}</p>
+      <button type="button" className="link-button" onClick={openEditDetails}>
+        Edit pharmacy details
+      </button>
+    </div>
+  )
+
   // Pharmacy exists but hasn't been approved by a system admin yet
   if (pharmacy.verification_status !== 'verified') {
     return (
@@ -264,6 +415,8 @@ export default function PharmacyAdminDashboard() {
           {pharmacy.name}{' '}
           <span className={`badge status-${pharmacy.verification_status}`}>{pharmacy.verification_status}</span>
         </h1>
+
+        {detailsSection}
 
         {pharmacy.verification_status === 'rejected' ? (
           <>
@@ -286,6 +439,8 @@ export default function PharmacyAdminDashboard() {
       <h1>
         {pharmacy.name} <span className="badge">verified</span>
       </h1>
+
+      {detailsSection}
 
       <h2>Contact email</h2>
       {pharmacy.contact_email_verified ? (
