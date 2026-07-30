@@ -11,6 +11,9 @@ export default function PharmacyAdminDashboard() {
   const [pharmacy, setPharmacy] = useState(null)
   const [inventory, setInventory] = useState([])
   const [loading, setLoading] = useState(true)
+
+  // Fallback form — only used if a pharmacy_admin account somehow has no
+  // pharmacy row yet (normally created automatically at signup).
   const [form, setForm] = useState({
     name: '',
     address: '',
@@ -89,10 +92,16 @@ export default function PharmacyAdminDashboard() {
       .single()
 
     if (error) return alert(error.message)
+
+    const { error: reqError } = await supabase
+      .from('verification_requests')
+      .insert({ pharmacy_id: data.id })
+    if (reqError) console.error(reqError.message)
+
     setPharmacy(data)
   }
 
-  async function handleSubmitVerification() {
+  async function handleResubmitVerification() {
     const { error } = await supabase
       .from('verification_requests')
       .insert({ pharmacy_id: pharmacy.id })
@@ -197,6 +206,8 @@ export default function PharmacyAdminDashboard() {
 
   if (loading) return <p className="page-loading">Loading...</p>
 
+  // Fallback: only reached if this pharmacy_admin account has no pharmacy row
+  // at all (shouldn't normally happen, since registration creates one automatically).
   if (!pharmacy) {
     return (
       <div className="page">
@@ -245,15 +256,36 @@ export default function PharmacyAdminDashboard() {
     )
   }
 
+  // Pharmacy exists but hasn't been approved by a system admin yet
+  if (pharmacy.verification_status !== 'verified') {
+    return (
+      <div className="page">
+        <h1>
+          {pharmacy.name}{' '}
+          <span className={`badge status-${pharmacy.verification_status}`}>{pharmacy.verification_status}</span>
+        </h1>
+
+        {pharmacy.verification_status === 'rejected' ? (
+          <>
+            <p>Your pharmacy application was rejected by a system administrator.</p>
+            <button onClick={handleResubmitVerification}>Resubmit for verification</button>
+          </>
+        ) : (
+          <p>
+            Your pharmacy application is under review by a system administrator. Once
+            approved, you'll be able to manage your inventory here.
+          </p>
+        )}
+      </div>
+    )
+  }
+
+  // Pharmacy is verified — full dashboard
   return (
     <div className="page">
       <h1>
-        {pharmacy.name} <span className={`badge status-${pharmacy.verification_status}`}>{pharmacy.verification_status}</span>
+        {pharmacy.name} <span className="badge">verified</span>
       </h1>
-
-      {pharmacy.verification_status === 'pending' && (
-        <button onClick={handleSubmitVerification}>Submit for verification</button>
-      )}
 
       <h2>Contact email</h2>
       {pharmacy.contact_email_verified ? (

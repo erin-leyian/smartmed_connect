@@ -3,7 +3,8 @@ import { Link } from 'react-router-dom'
 import { supabase } from '../lib/supabaseClient'
 
 export default function Welcome() {
-  const [view, setView] = useState('start') // 'start' | 'login' | 'register'
+  const [view, setView] = useState('start')
+  // 'start' | 'login' | 'register-choice' | 'register-patient' | 'register-pharmacy'
 
   return (
     <div className="welcome-shell">
@@ -14,7 +15,9 @@ export default function Welcome() {
       <div className="welcome-actions">
         {view === 'start' && <StartPanel onChoose={setView} />}
         {view === 'login' && <InlineLogin onSwitch={setView} />}
-        {view === 'register' && <InlineRegister onSwitch={setView} />}
+        {view === 'register-choice' && <RegisterChoice onChoose={setView} />}
+        {view === 'register-patient' && <PatientRegisterForm onSwitch={setView} />}
+        {view === 'register-pharmacy' && <PharmacyRegisterForm onSwitch={setView} />}
       </div>
     </div>
   )
@@ -27,12 +30,31 @@ function StartPanel({ onChoose }) {
       <p>Log in or create an account to manage a pharmacy or oversee the platform.</p>
       <div className="welcome-buttons">
         <button className="welcome-btn welcome-btn-primary" onClick={() => onChoose('login')}>Log in</button>
-        <button className="welcome-btn welcome-btn-secondary" onClick={() => onChoose('register')}>Register</button>
+        <button className="welcome-btn welcome-btn-secondary" onClick={() => onChoose('register-choice')}>Register</button>
       </div>
       <p className="welcome-guest">
         Just looking for medicine? <Link to="/browse">Browse without an account</Link>
       </p>
     </>
+  )
+}
+
+function RegisterChoice({ onChoose }) {
+  return (
+    <div className="welcome-form-wrap">
+      <h2>Register as...</h2>
+      <div className="welcome-buttons welcome-buttons-stacked">
+        <button className="welcome-btn welcome-btn-primary" onClick={() => onChoose('register-patient')}>
+          I'm a patient
+        </button>
+        <button className="welcome-btn welcome-btn-secondary" onClick={() => onChoose('register-pharmacy')}>
+          Register my pharmacy
+        </button>
+      </div>
+      <button type="button" className="link-button welcome-back" onClick={() => onChoose('start')}>
+        ← Back
+      </button>
+    </div>
   )
 }
 
@@ -72,7 +94,7 @@ function InlineLogin({ onSwitch }) {
       </form>
       <p>
         Don't have an account?{' '}
-        <button type="button" className="link-button" onClick={() => onSwitch('register')}>Register</button>
+        <button type="button" className="link-button" onClick={() => onSwitch('register-choice')}>Register</button>
       </p>
       <button type="button" className="link-button welcome-back" onClick={() => onSwitch('start')}>
         ← Back
@@ -81,11 +103,10 @@ function InlineLogin({ onSwitch }) {
   )
 }
 
-function InlineRegister({ onSwitch }) {
+function PatientRegisterForm({ onSwitch }) {
   const [fullName, setFullName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
-  const [role, setRole] = useState('patient')
   const [error, setError] = useState(null)
   const [loading, setLoading] = useState(false)
   const [done, setDone] = useState(false)
@@ -95,27 +116,17 @@ function InlineRegister({ onSwitch }) {
     setError(null)
     setLoading(true)
 
-    const { data, error: signUpError } = await supabase.auth.signUp({ email, password })
-
-    if (signUpError) {
-      setError(signUpError.message)
-      setLoading(false)
-      return
-    }
-
-    const { error: profileError } = await supabase.from('profiles').insert({
-      id: data.user.id,
-      full_name: fullName,
-      role,
+    const { error: signUpError } = await supabase.auth.signUp({
+      email,
+      password,
+      options: { data: { full_name: fullName, role: 'patient' } },
     })
 
     setLoading(false)
-
-    if (profileError) {
-      setError(profileError.message)
+    if (signUpError) {
+      setError(signUpError.message)
       return
     }
-
     setDone(true)
   }
 
@@ -123,10 +134,7 @@ function InlineRegister({ onSwitch }) {
     return (
       <div className="welcome-form-wrap">
         <h2>Check your email</h2>
-        <p>
-          We sent a confirmation link to <strong>{email}</strong>. Confirm it,
-          then log in below.
-        </p>
+        <p>We sent a confirmation link to <strong>{email}</strong>. Confirm it, then log in below.</p>
         <button onClick={() => onSwitch('login')}>Go to log in</button>
       </div>
     )
@@ -134,7 +142,7 @@ function InlineRegister({ onSwitch }) {
 
   return (
     <div className="welcome-form-wrap">
-      <h2>Create an account</h2>
+      <h2>Register as a patient</h2>
       <form onSubmit={handleRegister} className="auth-form">
         <label>
           Full name
@@ -146,29 +154,147 @@ function InlineRegister({ onSwitch }) {
         </label>
         <label>
           Password
-          <input
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-            minLength={6}
-          />
-        </label>
-        <label>
-          I am a...
-          <select value={role} onChange={(e) => setRole(e.target.value)}>
-            <option value="patient">Patient looking for medicine</option>
-            <option value="pharmacy_admin">Pharmacy administrator</option>
-          </select>
+          <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} required minLength={6} />
         </label>
         {error && <p className="form-error">{error}</p>}
         <button type="submit" disabled={loading}>{loading ? 'Creating account...' : 'Register'}</button>
       </form>
-      <p>
-        Already have an account?{' '}
-        <button type="button" className="link-button" onClick={() => onSwitch('login')}>Log in</button>
-      </p>
-      <button type="button" className="link-button welcome-back" onClick={() => onSwitch('start')}>
+      <button type="button" className="link-button welcome-back" onClick={() => onSwitch('register-choice')}>
+        ← Back
+      </button>
+    </div>
+  )
+}
+
+function PharmacyRegisterForm({ onSwitch }) {
+  const [fullName, setFullName] = useState('')
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+
+  const [pharmacyName, setPharmacyName] = useState('')
+  const [address, setAddress] = useState('')
+  const [phone, setPhone] = useState('')
+  const [license, setLicense] = useState('')
+  const [contactEmail, setContactEmail] = useState('')
+  const [latitude, setLatitude] = useState('')
+  const [longitude, setLongitude] = useState('')
+
+  const [error, setError] = useState(null)
+  const [loading, setLoading] = useState(false)
+  const [done, setDone] = useState(false)
+
+  function handleUseCurrentLocation() {
+    if (!navigator.geolocation) {
+      alert('Location is not supported on this device.')
+      return
+    }
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        setLatitude(position.coords.latitude.toFixed(6))
+        setLongitude(position.coords.longitude.toFixed(6))
+      },
+      () => alert('Could not get your location. You can leave this blank and add it later.')
+    )
+  }
+
+  async function handleRegister(e) {
+    e.preventDefault()
+    setError(null)
+    setLoading(true)
+
+    const { error: signUpError } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        data: {
+          full_name: fullName,
+          role: 'pharmacy_admin',
+          pharmacy_name: pharmacyName,
+          pharmacy_address: address,
+          pharmacy_phone: phone,
+          pharmacy_license: license,
+          pharmacy_contact_email: contactEmail,
+          pharmacy_latitude: latitude,
+          pharmacy_longitude: longitude,
+        },
+      },
+    })
+
+    setLoading(false)
+    if (signUpError) {
+      setError(signUpError.message)
+      return
+    }
+    setDone(true)
+  }
+
+  if (done) {
+    return (
+      <div className="welcome-form-wrap">
+        <h2>Application submitted</h2>
+        <p>
+          We sent a confirmation link to <strong>{email}</strong>. Confirm it, then log in
+          below. Your pharmacy has been sent to a system administrator for verification —
+          once approved, you'll be able to manage inventory.
+        </p>
+        <button onClick={() => onSwitch('login')}>Go to log in</button>
+      </div>
+    )
+  }
+
+  return (
+    <div className="welcome-form-wrap-wide">
+      <h2>Register my pharmacy</h2>
+      <form onSubmit={handleRegister} className="auth-form">
+        <label>
+          Your full name
+          <input value={fullName} onChange={(e) => setFullName(e.target.value)} required />
+        </label>
+        <label>
+          Login email
+          <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
+        </label>
+        <label>
+          Password
+          <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} required minLength={6} />
+        </label>
+
+        <hr />
+
+        <label>
+          Pharmacy name
+          <input value={pharmacyName} onChange={(e) => setPharmacyName(e.target.value)} required />
+        </label>
+        <label>
+          Address
+          <input value={address} onChange={(e) => setAddress(e.target.value)} required />
+        </label>
+        <label>
+          Phone
+          <input value={phone} onChange={(e) => setPhone(e.target.value)} />
+        </label>
+        <label>
+          Pharmacy contact email
+          <input type="email" value={contactEmail} onChange={(e) => setContactEmail(e.target.value)} required />
+        </label>
+        <label>
+          License number
+          <input value={license} onChange={(e) => setLicense(e.target.value)} required />
+        </label>
+
+        <button type="button" onClick={handleUseCurrentLocation} className="link-button">
+          📍 Use my current location for pharmacy coordinates
+        </button>
+        {latitude && longitude && (
+          <p className="form-hint">Location set: {latitude}, {longitude}</p>
+        )}
+
+        {error && <p className="form-error">{error}</p>}
+        <button type="submit" disabled={loading}>
+          {loading ? 'Submitting...' : 'Submit for verification'}
+        </button>
+      </form>
+      <button type="button" className="link-button welcome-back" onClick={() => onSwitch('register-choice')}>
         ← Back
       </button>
     </div>
