@@ -488,3 +488,29 @@ button:hover {
   color: #0f4c75;
   margin-top: -0.5rem;
 }
+
+.pharmacy-header {
+  margin-bottom: 2rem;
+}
+
+.pharmacy-info-card {
+  display: inline-flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  background: white;
+  border: 1px solid #b9dcf2;
+  border-radius: 8px;
+  padding: 1rem 1.25rem;
+  margin-top: 0.75rem;
+}
+
+.pharmacy-info-card p {
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.info-icon {
+  font-size: 1.1rem;
+}
