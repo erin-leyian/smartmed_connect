@@ -18,6 +18,13 @@ export default function Navbar() {
       </button>
       <nav className={`sidebar ${isOpen ? 'sidebar-open' : 'sidebar-closed'}`}>
         <Link to="/browse" className="sidebar-brand">SmartMed Connect</Link>
+
+        {user && (
+          <button className="sidebar-logout-btn" onClick={handleSignOut}>
+            Log out
+          </button>
+        )}
+
         <div className="sidebar-links">
           <Link to="/browse">Home</Link>
           {!user && (
@@ -28,9 +35,6 @@ export default function Navbar() {
           )}
           {user && profile?.role === 'pharmacy_admin' && <Link to="/pharmacy-admin">My pharmacy</Link>}
           {user && profile?.role === 'system_admin' && <Link to="/system-admin">Admin panel</Link>}
-          {user && (
-            <button className="link-button sidebar-logout" onClick={handleSignOut}>Log out</button>
-          )}
         </div>
       </nav>
     </>

@@ -89,10 +89,22 @@ h1, h2, h3 {
   cursor: pointer;
 }
 
-.sidebar-logout {
-  margin-top: 1rem;
-  padding-top: 1rem;
-  border-top: 1px solid rgba(255, 255, 255, 0.2);
+.sidebar-logout-btn {
+  font-family: 'Poppins', sans-serif;
+  font-weight: 700;
+  background: #0f4c75;
+  color: white;
+  border: none;
+  border-radius: 999px;
+  padding: 0.6rem 1.4rem;
+  margin: 0.5rem 0 1.5rem;
+  cursor: pointer;
+  font-size: 0.95rem;
+  align-self: flex-start;
+}
+
+.sidebar-logout-btn:hover {
+  background: #146692;
 }
 
 .app-main {
