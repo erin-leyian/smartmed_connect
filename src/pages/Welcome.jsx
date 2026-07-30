@@ -202,29 +202,38 @@ function PharmacyRegisterForm({ onSwitch }) {
     setError(null)
     setLoading(true)
 
-    const { error: signUpError } = await supabase.auth.signUp({
+    const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
       email,
       password,
       options: {
-        data: {
-          full_name: fullName,
-          role: 'pharmacy_admin',
-          pharmacy_name: pharmacyName,
-          pharmacy_address: address,
-          pharmacy_phone: phone,
-          pharmacy_license: license,
-          pharmacy_contact_email: contactEmail,
-          pharmacy_latitude: latitude,
-          pharmacy_longitude: longitude,
-        },
+        data: { full_name: fullName, role: 'pharmacy_admin' },
       },
     })
 
-    setLoading(false)
     if (signUpError) {
       setError(signUpError.message)
+      setLoading(false)
       return
     }
+
+    const { error: rpcError } = await supabase.rpc('register_pharmacy', {
+      p_admin_id: signUpData.user.id,
+      p_name: pharmacyName,
+      p_address: address,
+      p_phone: phone,
+      p_license_number: license,
+      p_contact_email: contactEmail,
+      p_latitude: latitude ? parseFloat(latitude) : null,
+      p_longitude: longitude ? parseFloat(longitude) : null,
+    })
+
+    setLoading(false)
+
+    if (rpcError) {
+      setError(rpcError.message)
+      return
+    }
+
     setDone(true)
   }
 
