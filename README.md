@@ -107,3 +107,35 @@ This project deploys cleanly to Vercel:
 4. Deploy, then update Supabase's Site URL/Redirect URLs (step 5 above) to match the live domain
 
 ## Project Structure
+
+smartmed_connect/
+├── src/
+│   ├── App.jsx
+│   ├── main.jsx
+│   ├── components/
+│   │   ├── Navbar.jsx
+│   │   └── ProtectedRoute.jsx
+│   ├── lib/
+│   │   ├── AuthContext.jsx
+│   │   └── supabaseClient.js
+│   ├── pages/
+│   │   ├── Welcome.jsx
+│   │   ├── RootRedirect.jsx
+│   │   ├── Home.jsx
+│   │   ├── SearchResults.jsx
+│   │   ├── PharmacyProfile.jsx
+│   │   ├── PharmacyAdminDashboard.jsx
+│   │   ├── SystemAdminPanel.jsx
+│   │   ├── Login.jsx
+│   │   └── Register.jsx
+│   └── styles/
+│       └── index.css
+├── supabase/
+│   └── schema.sql
+├── public/
+│   └── images/
+├── index.html
+├── package.json
+├── vite.config.js
+├── vercel.json
+└── README.md
