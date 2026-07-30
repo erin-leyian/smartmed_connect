@@ -2,6 +2,9 @@ import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { supabase } from '../lib/supabaseClient'
 
+// Landing page for logged-out visitors. Acts as a small state machine —
+// one component swaps between five "views" instead of using separate
+// routes, so login/register happen inline without leaving the page.
 export default function Welcome() {
   const [view, setView] = useState('start')
   // 'start' | 'login' | 'register-choice' | 'register-patient' | 'register-pharmacy'
@@ -103,6 +106,10 @@ function InlineLogin({ onSwitch }) {
   )
 }
 
+// Simple signup — just an account, no pharmacy involved. The
+// handle_new_user() database trigger creates the matching profiles
+// row automatically once the account exists, using the role passed
+// in below.
 function PatientRegisterForm({ onSwitch }) {
   const [fullName, setFullName] = useState('')
   const [email, setEmail] = useState('')
@@ -116,6 +123,7 @@ function PatientRegisterForm({ onSwitch }) {
     setError(null)
     setLoading(true)
 
+    
     const { error: signUpError } = await supabase.auth.signUp({
       email,
       password,
@@ -202,6 +210,8 @@ function PharmacyRegisterForm({ onSwitch }) {
     setError(null)
     setLoading(true)
 
+      // Step 1: create the login account (role stored so the trigger
+    // creates a profiles row with the right role)
     const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
       email,
       password,
@@ -216,6 +226,8 @@ function PharmacyRegisterForm({ onSwitch }) {
       return
     }
 
+       // Step 2: create the pharmacy itself, plus its initial verification
+    // request, via the register_pharmacy() database function
     const { error: rpcError } = await supabase.rpc('register_pharmacy', {
       p_admin_id: signUpData.user.id,
       p_name: pharmacyName,

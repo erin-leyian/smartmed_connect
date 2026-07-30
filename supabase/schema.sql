@@ -1,9 +1,4 @@
--- SmartMed Connect — full database setup
--- Run this once, in order, on a fresh Supabase project's SQL editor.
-
--- ============================================================
 -- 1. TABLES
--- ============================================================
 
 create table profiles (
   id uuid primary key references auth.users(id) on delete cascade,
@@ -60,9 +55,7 @@ create table verification_requests (
   notes text
 );
 
--- ============================================================
 -- 2. ROW LEVEL SECURITY
--- ============================================================
 
 alter table profiles enable row level security;
 alter table pharmacies enable row level security;
@@ -176,9 +169,7 @@ create policy "Pharmacy admins submit verification requests"
     )
   );
 
--- ============================================================
 -- 3. SIGNUP TRIGGER
--- ============================================================
 
 create or replace function public.handle_new_user()
 returns trigger
@@ -203,9 +194,8 @@ create trigger on_auth_user_created
   after insert on auth.users
   for each row execute function public.handle_new_user();
 
--- ============================================================
 -- 4. PHARMACY REGISTRATION FUNCTION
--- ============================================================
+
 
 create or replace function public.register_pharmacy(
   p_admin_id uuid,
@@ -242,9 +232,9 @@ $$;
 
 grant execute on function public.register_pharmacy to anon, authenticated;
 
--- ============================================================
+
 -- 5. SYSTEM ADMIN ACCOUNT (manual step — not run as SQL)
--- ============================================================
+
 -- 1. Supabase Dashboard -> Authentication -> Users -> Add user
 --    Enter an email/password, toggle "Auto Confirm User" on.
 -- 2. Copy the new user's UUID.

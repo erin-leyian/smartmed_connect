@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useAuth } from '../lib/AuthContext'
 import { supabase } from '../lib/supabaseClient'
 
+// Generates a random 6-digit code for the demo email verification flow
 function generateCode() {
   return Math.floor(100000 + Math.random() * 900000).toString()
 }
@@ -67,6 +68,8 @@ export default function PharmacyAdminDashboard() {
     setLoading(false)
   }
 
+  // Grabs the browser's current GPS coordinates and fills them into the
+  // "register pharmacy" fallback form
   function handleUseCurrentLocation() {
     if (!navigator.geolocation) {
       alert('Location is not supported on this device.')
