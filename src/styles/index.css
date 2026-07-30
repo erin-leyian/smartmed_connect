@@ -1,11 +1,15 @@
 body {
-  font-family: sans-serif;
+  font-family: 'Inter', sans-serif;
   margin: 0;
   color: #14293a;
   background-image: linear-gradient(rgba(234, 246, 253, 0.45), rgba(234, 246, 253, 0.45)), url('/images/pills-bg.jpg');
   background-size: cover;
   background-position: center;
   background-attachment: fixed;
+}
+
+h1, h2, h3 {
+  font-family: 'Poppins', sans-serif;
 }
 
 .app-shell {
@@ -431,4 +435,12 @@ button:hover {
 .welcome-back {
   margin-top: 1rem;
   display: block;
+}
+
+.home-page {
+  background-image: linear-gradient(rgba(255, 255, 255, 0.82), rgba(255, 255, 255, 0.82)), url('/images/browse-bg.jpg');
+  background-size: cover;
+  background-position: center;
+  border-radius: 12px;
+  padding: 2.5rem;
 }
