@@ -4,9 +4,9 @@ A web-based platform that helps patients in Nairobi find medicine at nearby veri
 
 ## Links
 
-- **Live app:** [ADD YOUR VERCEL URL HERE]
-- **Demo video:** [ADD YOUR VIDEO LINK HERE]
-- **SRS document:** [ADD YOUR SRS LINK HERE]
+- **Live app: smartmed-connect-nu.vercel.app
+- **Demo video: https://drive.google.com/file/d/1_9gaE3tzCNQRIN6YTRrUQNLhwd6TYgYx/view?usp=sharing
+- **SRS document: https://docs.google.com/document/d/1xE3jWGAh3VJKl18m_JlVRkjsMa-Uz7TBF6mrdQzdQcQ/edit?usp=sharing
 
 ## System Admin Demo Login
 
@@ -84,6 +84,9 @@ In Supabase Dashboard → **Authentication → URL Configuration**:
 ### 6. Environment variables
 
 Create a `.env` file in the project root:
+
+VITE_SUPABASE_URL=your-supabase-project-url
+VITE_SUPABASE_ANON_KEY=your-supabase-anon-key
 
 Both values are in your Supabase Dashboard under **Settings → API**.
 
