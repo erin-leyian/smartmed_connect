@@ -456,3 +456,35 @@ button:hover {
   border-radius: 12px;
   padding: 2.5rem;
 }
+
+.results-controls {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+}
+
+.location-btn {
+  background: white;
+  color: #0f4c75;
+  border: 1px solid #2196d8;
+  padding: 0.5rem 0.9rem;
+  border-radius: 4px;
+  font-size: 0.9rem;
+}
+
+.location-btn:hover {
+  background: #eaf6fd;
+}
+
+.product-distance {
+  font-size: 0.85rem;
+  color: #0f4c75;
+  font-weight: 600;
+  margin: 0;
+}
+
+.form-hint {
+  font-size: 0.85rem;
+  color: #0f4c75;
+  margin-top: -0.5rem;
+}

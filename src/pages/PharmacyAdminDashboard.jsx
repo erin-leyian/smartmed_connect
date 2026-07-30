@@ -2,16 +2,32 @@ import { useEffect, useState } from 'react'
 import { useAuth } from '../lib/AuthContext'
 import { supabase } from '../lib/supabaseClient'
 
+function generateCode() {
+  return Math.floor(100000 + Math.random() * 900000).toString()
+}
+
 export default function PharmacyAdminDashboard() {
   const { user } = useAuth()
   const [pharmacy, setPharmacy] = useState(null)
   const [inventory, setInventory] = useState([])
   const [loading, setLoading] = useState(true)
-  const [form, setForm] = useState({ name: '', address: '', phone: '', license_number: '' })
+  const [form, setForm] = useState({
+    name: '',
+    address: '',
+    phone: '',
+    license_number: '',
+    contact_email: '',
+    latitude: '',
+    longitude: '',
+  })
 
   const [medicineName, setMedicineName] = useState('')
   const [price, setPrice] = useState('')
   const [quantity, setQuantity] = useState('')
+
+  const [emailCodeInput, setEmailCodeInput] = useState('')
+  const [demoCode, setDemoCode] = useState(null)
+  const [emailError, setEmailError] = useState(null)
 
   useEffect(() => {
     fetchPharmacy()
@@ -26,6 +42,9 @@ export default function PharmacyAdminDashboard() {
       .maybeSingle()
 
     setPharmacy(data)
+    if (data?.contact_email_code && new Date(data.contact_email_code_expires_at) > new Date()) {
+      setDemoCode(data.contact_email_code)
+    }
     if (data) fetchInventory(data.id)
     else setLoading(false)
   }
@@ -39,11 +58,33 @@ export default function PharmacyAdminDashboard() {
     setLoading(false)
   }
 
+  function handleUseCurrentLocation() {
+    if (!navigator.geolocation) {
+      alert('Location is not supported on this device.')
+      return
+    }
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        setForm((f) => ({
+          ...f,
+          latitude: position.coords.latitude.toFixed(6),
+          longitude: position.coords.longitude.toFixed(6),
+        }))
+      },
+      () => alert('Could not get your location. You can leave this blank and add it later.')
+    )
+  }
+
   async function handleCreatePharmacy(e) {
     e.preventDefault()
+    const payload = {
+      ...form,
+      latitude: form.latitude ? parseFloat(form.latitude) : null,
+      longitude: form.longitude ? parseFloat(form.longitude) : null,
+    }
     const { data, error } = await supabase
       .from('pharmacies')
-      .insert({ ...form, admin_id: user.id })
+      .insert({ ...payload, admin_id: user.id })
       .select()
       .single()
 
@@ -58,6 +99,57 @@ export default function PharmacyAdminDashboard() {
 
     if (error) return alert(error.message)
     alert('Verification request submitted.')
+  }
+
+  async function handleSendEmailCode() {
+    setEmailError(null)
+    const code = generateCode()
+    const expiresAt = new Date(Date.now() + 10 * 60 * 1000).toISOString()
+
+    const { data, error } = await supabase
+      .from('pharmacies')
+      .update({ contact_email_code: code, contact_email_code_expires_at: expiresAt })
+      .eq('id', pharmacy.id)
+      .select()
+      .single()
+
+    if (error) return alert(error.message)
+    setPharmacy(data)
+    setDemoCode(code)
+  }
+
+  async function handleVerifyEmailCode(e) {
+    e.preventDefault()
+    setEmailError(null)
+
+    if (!pharmacy.contact_email_code) {
+      setEmailError('Send a verification code first.')
+      return
+    }
+    if (new Date(pharmacy.contact_email_code_expires_at) < new Date()) {
+      setEmailError('That code has expired. Send a new one.')
+      return
+    }
+    if (emailCodeInput.trim() !== pharmacy.contact_email_code) {
+      setEmailError('Incorrect code.')
+      return
+    }
+
+    const { data, error } = await supabase
+      .from('pharmacies')
+      .update({
+        contact_email_verified: true,
+        contact_email_code: null,
+        contact_email_code_expires_at: null,
+      })
+      .eq('id', pharmacy.id)
+      .select()
+      .single()
+
+    if (error) return alert(error.message)
+    setPharmacy(data)
+    setDemoCode(null)
+    setEmailCodeInput('')
   }
 
   async function handleAddInventory(e) {
@@ -123,6 +215,15 @@ export default function PharmacyAdminDashboard() {
             <input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} />
           </label>
           <label>
+            Contact email
+            <input
+              type="email"
+              value={form.contact_email}
+              onChange={(e) => setForm({ ...form, contact_email: e.target.value })}
+              required
+            />
+          </label>
+          <label>
             License number
             <input
               value={form.license_number}
@@ -130,6 +231,14 @@ export default function PharmacyAdminDashboard() {
               required
             />
           </label>
+
+          <button type="button" onClick={handleUseCurrentLocation} className="link-button">
+            📍 Use my current location for pharmacy coordinates
+          </button>
+          {form.latitude && form.longitude && (
+            <p className="form-hint">Location set: {form.latitude}, {form.longitude}</p>
+          )}
+
           <button type="submit">Register pharmacy</button>
         </form>
       </div>
@@ -146,34 +255,76 @@ export default function PharmacyAdminDashboard() {
         <button onClick={handleSubmitVerification}>Submit for verification</button>
       )}
 
-      <h2>Add / update stock</h2>
-      <form onSubmit={handleAddInventory} className="auth-form">
-        <label>
-          Medicine name
-          <input value={medicineName} onChange={(e) => setMedicineName(e.target.value)} required />
-        </label>
-        <label>
-          Price (KES)
-          <input type="number" step="0.01" value={price} onChange={(e) => setPrice(e.target.value)} required />
-        </label>
-        <label>
-          Quantity
-          <input type="number" value={quantity} onChange={(e) => setQuantity(e.target.value)} required />
-        </label>
-        <button type="submit">Save</button>
-      </form>
+      <h2>Contact email</h2>
+      {pharmacy.contact_email_verified ? (
+        <p>
+          {pharmacy.contact_email} <span className="badge">Verified</span>
+        </p>
+      ) : (
+        <div className="email-verify-box">
+          <p>
+            {pharmacy.contact_email} <span className="badge status-pending">Not verified</span>
+          </p>
+          <button type="button" onClick={handleSendEmailCode}>
+            {pharmacy.contact_email_code ? 'Resend code' : 'Send verification code'}
+          </button>
 
-      <h2>Current inventory</h2>
-      <ul className="results-list">
-        {inventory.map((item) => (
-          <li key={item.id} className="result-card">
-            <span>{item.medicines.name}</span>
-            <span>KES {item.price}</span>
-            <span>{item.quantity} in stock</span>
-            <button className="link-button" onClick={() => handleRemoveInventory(item.id)}>Remove</button>
-          </li>
-        ))}
-      </ul>
+          {demoCode && (
+            <p className="form-error" style={{ color: '#0f4c75' }}>
+              Demo mode — no real email is sent. Verification code: <strong>{demoCode}</strong>
+            </p>
+          )}
+
+          <form onSubmit={handleVerifyEmailCode} className="auth-form">
+            <label>
+              Enter verification code
+              <input
+                value={emailCodeInput}
+                onChange={(e) => setEmailCodeInput(e.target.value)}
+                maxLength={6}
+                required
+              />
+            </label>
+            {emailError && <p className="form-error">{emailError}</p>}
+            <button type="submit">Verify email</button>
+          </form>
+        </div>
+      )}
+
+      {pharmacy.contact_email_verified ? (
+        <>
+          <h2>Add / update stock</h2>
+          <form onSubmit={handleAddInventory} className="auth-form">
+            <label>
+              Medicine name
+              <input value={medicineName} onChange={(e) => setMedicineName(e.target.value)} required />
+            </label>
+            <label>
+              Price (KES)
+              <input type="number" step="0.01" value={price} onChange={(e) => setPrice(e.target.value)} required />
+            </label>
+            <label>
+              Quantity
+              <input type="number" value={quantity} onChange={(e) => setQuantity(e.target.value)} required />
+            </label>
+            <button type="submit">Save</button>
+          </form>
+
+          <h2>Current inventory</h2>
+          <ul className="results-list">
+            {inventory.map((item) => (
+              <li key={item.id} className="result-card">
+                <span>{item.medicines.name}</span>
+                <span>KES {item.price}</span>
+                <span>{item.quantity} in stock</span>
+                <button className="link-button" onClick={() => handleRemoveInventory(item.id)}>Remove</button>
+              </li>
+            ))}
+          </ul>
+        </>
+      ) : (
+        <p>Verify your pharmacy's contact email above to manage inventory.</p>
+      )}
     </div>
   )
 }
