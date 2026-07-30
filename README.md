@@ -4,7 +4,7 @@ A web-based platform that helps patients in Nairobi find medicine at nearby veri
 
 ## Links
 
-- **Live app: smartmed-connect-nu.vercel.app
+- **Live app: https://smartmed-connect-nu.vercel.app/
 - **Demo video: https://drive.google.com/file/d/1_9gaE3tzCNQRIN6YTRrUQNLhwd6TYgYx/view?usp=sharing
 - **SRS document: https://docs.google.com/document/d/1xE3jWGAh3VJKl18m_JlVRkjsMa-Uz7TBF6mrdQzdQcQ/edit?usp=sharing
 
@@ -98,7 +98,7 @@ npm run dev
 
 The app runs at `http://localhost:5173`.
 
-### 8. Deploy (optional — already deployed for this submission)
+### 8. Deploy (already deployed for this submission)
 
 This project deploys cleanly to Vercel:
 1. Push this repo to GitHub (public)
